@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 using TestWebApi.Converters;
-using TestWebApi.Infrastructure.Models.Enums;
-using TestWebApi.Infrastructure.Repositories;
+using TestWebApi.Services;
 
 namespace TestWebApi.Controllers
 {
@@ -15,11 +14,11 @@ namespace TestWebApi.Controllers
     [Route("/task")]
     public class SomeModelController : ControllerBase
     {
-        private readonly ISomeModelRepository _someModelRepository;
+        private readonly ISomeModelService _someModelService;
 
-        public SomeModelController(ISomeModelRepository someModelRepository)
+        public SomeModelController(ISomeModelService someModelService)
         {
-            _someModelRepository = someModelRepository ?? throw new ArgumentNullException(nameof(someModelRepository));
+            _someModelService = someModelService ?? throw new ArgumentNullException(nameof(someModelService));
         }
 
         [HttpPost]
@@ -28,31 +27,16 @@ namespace TestWebApi.Controllers
             //Зашитая передача токена отмены
             CancellationTokenSource tokenSource = new CancellationTokenSource();
 
-            var createdModel = await _someModelRepository.CreateAsync(token: tokenSource.Token);
-            await _someModelRepository.SaveChangesAsync(tokenSource.Token);
+            var createdModelId = await _someModelService.CreateAsync(token: tokenSource.Token);
 
-            _ = Task.Run(async () =>
-            {
-                createdModel.Status = StateStatus.Running;
-                await _someModelRepository.UpdateAsync(createdModel, tokenSource.Token);
-                await _someModelRepository.SaveChangesAsync(tokenSource.Token);
-
-                await Task.Delay(2 * 60 * 1000);
-
-                createdModel.Status = StateStatus.Finished;
-                await _someModelRepository.UpdateAsync(createdModel, tokenSource.Token);
-                await _someModelRepository.SaveChangesAsync(tokenSource.Token);
-
-            });
-
-            return Accepted(new Uri($"http://localhost:5000/task/{createdModel.Id}"), createdModel.Id);
+            return Accepted(new Uri($"http://localhost:5000/task/{createdModelId}"), createdModelId);
         }
 
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetModel([Required] Guid id)
         {
-            var model = await _someModelRepository.FindByIdAsync(id);
+            var model = await _someModelService.FindByIdAsync(id);
 
             return model switch
             {

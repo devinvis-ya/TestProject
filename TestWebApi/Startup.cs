@@ -1,10 +1,11 @@
 
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
 using TestWebApi.Infrastructure;
 using TestWebApi.Infrastructure.Repositories;
+using TestWebApi.Services;
 
 namespace TestWebApi
 {
@@ -16,6 +17,7 @@ namespace TestWebApi
 
             services.AddDbContext<DefaultDbContext>(opt => opt.UseInMemoryDatabase("SomeModelDB"), ServiceLifetime.Singleton, ServiceLifetime.Singleton);
 
+            services.AddScoped<ISomeModelService, SomeModelService>();
             services.AddScoped<ISomeModelRepository, SomeModelRepository>();
         }
 
