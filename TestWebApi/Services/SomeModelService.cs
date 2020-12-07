@@ -28,8 +28,7 @@ namespace TestWebApi.Services
                 await _someModelRepository.UpdateAsync(createdModel, token);
                 await _someModelRepository.SaveChangesAsync(token);
 
-                //await Task.Delay(2 * 60 * 1000);
-                await Task.Delay(10000);
+                await Task.Delay(2 * 60 * 1000);
 
                 createdModel.Status = StateStatus.Finished;
                 await _someModelRepository.UpdateAsync(createdModel, token);
